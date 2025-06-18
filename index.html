@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -420,12 +418,13 @@
             addMessage(translations[currentLanguage].greeting, 'bot');
             
             // Add system prompt to conversation history
-            conversationHistory.push({
-                role: "system",
-                parts: [{
-                    text: translations[currentLanguage].systemPrompt
-                }]
-            });
+            conversationHistory = [{
+                role: "user",
+                parts: [{ text: translations[currentLanguage].systemPrompt }]
+            }, {
+                role: "model",
+                parts: [{ text: translations[currentLanguage].greeting }]
+            }];
         }
         
         async function handleSubmit(e) {
@@ -447,7 +446,7 @@
             });
             
             try {
-                const response = await fetchGeminiResponse(message);
+                const response = await fetchGeminiResponse();
                 
                 // Remove typing indicator
                 removeTypingIndicator();
@@ -466,28 +465,19 @@
             } catch (error) {
                 console.error("Error:", error);
                 removeTypingIndicator();
-                addMessage("I'm having trouble connecting right now. Please try again later.", 'bot');
+                addMessage(currentLanguage === 'id' ? 
+                    "Saya mengalami masalah koneksi saat ini. Silakan coba lagi nanti." : 
+                    "I'm having trouble connecting right now. Please try again later.", 'bot');
             }
         }
         
-        async function fetchGeminiResponse(message) {
-            // Prepare the request payload according to the Gemini API format
+        async function fetchGeminiResponse() {
+            // Prepare the request payload with full conversation history
             const payload = {
-                contents: [
-                    {
-                        parts: [
-                            {
-                                text: `You are SuJaLo AI, a friendly learning companion that helps students develop deeper understanding through conversations rather than just giving answers. 
-                                
-                                Previous conversation: ${JSON.stringify(conversationHistory.slice(-6))}
-                                
-                                Student question: ${message}
-                                
-                                Respond in ${currentLanguage === 'id' ? 'INDONESIAN' : 'ENGLISH'} language. Be friendly, supportive, and conversational. Guide the student to deeper understanding, ask follow-up questions, and encourage a growth mindset.`
-                            }
-                        ]
-                    }
-                ]
+                contents: conversationHistory.map(item => ({
+                    role: item.role,
+                    parts: item.parts
+                }))
             };
             
             // Make the API request
@@ -564,15 +554,19 @@
             
             // Reset conversation history
             conversationHistory = [{
-                role: "system",
-                parts: [{
-                    text: translations[currentLanguage].systemPrompt
-                }]
+                role: "user",
+                parts: [{ text: translations[currentLanguage].systemPrompt }]
             }];
             
             // Add initial greeting message
             addMessage(translations[currentLanguage].freshStart, 'bot');
+            
+            // Add greeting to conversation history
+            conversationHistory.push({
+                role: "model",
+                parts: [{ text: translations[currentLanguage].freshStart }]
+            });
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'95168d06b4b5f847',t:'MTc1MDIwNTI5Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
