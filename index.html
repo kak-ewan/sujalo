@@ -1,0 +1,578 @@
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuJaLo AI - Teman Belajarmu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+        }
+        .chat-container {
+            height: calc(100vh - 180px);
+        }
+        .message-bubble {
+            max-width: 80%;
+            border-radius: 18px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .user-message {
+            background-color: #e1f5fe;
+            border-bottom-right-radius: 4px;
+            margin-left: auto;
+        }
+        .bot-message {
+            background-color: #ffffff;
+            border-bottom-left-radius: 4px;
+            margin-right: auto;
+        }
+        .typing-indicator {
+            display: inline-block;
+        }
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            opacity: 0.6;
+            animation: typing 1s infinite;
+        }
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #4b5563;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+            transform: translateY(-2px);
+        }
+        .welcome-screen {
+            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            animation: fadeIn 1s ease-out;
+        }
+        .welcome-logo {
+            width: 120px;
+            height: 120px;
+            background-color: white;
+            border-radius: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .welcome-logo svg {
+            width: 70px;
+            height: 70px;
+        }
+        .welcome-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .welcome-subtitle {
+            font-size: 1.2rem;
+            font-weight: 300;
+            max-width: 600px;
+            margin-bottom: 32px;
+        }
+        .start-button {
+            background-color: white;
+            color: #4f46e5;
+            font-weight: 600;
+            padding: 12px 32px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        .language-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            padding: 4px;
+        }
+        .language-option {
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .language-option.active {
+            background-color: white;
+            color: #4f46e5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Welcome Screen -->
+    <div id="welcomeScreen" class="welcome-screen">
+        <div class="language-toggle">
+            <div id="langId" class="language-option active">ID</div>
+            <div id="langEn" class="language-option">EN</div>
+        </div>
+        <div class="welcome-logo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#4f46e5">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-14h2v6h-2zm0 8h2v2h-2z"/>
+            </svg>
+        </div>
+        <h1 class="welcome-title" id="welcomeTitle">SuJaLo AI</h1>
+        <p class="welcome-subtitle" id="welcomeSubtitle">Teman belajar yang membantu kamu memahami konsep lebih dalam dan mengembangkan pola pikir bertumbuh</p>
+        <button id="startButton" class="start-button">Mulai Belajar</button>
+    </div>
+
+    <!-- Main Chat Interface -->
+    <div id="chatInterface" class="hidden flex flex-col h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+        <!-- Header -->
+        <header class="bg-white shadow-md py-4 px-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">SuJaLo AI</h1>
+                        <p class="text-xs text-gray-500" id="headerSubtitle">Teman Belajarmu</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="language-toggle bg-gray-100">
+                        <div id="headerLangId" class="language-option active">ID</div>
+                        <div id="headerLangEn" class="language-option">EN</div>
+                    </div>
+                    <button id="resetChat" class="text-gray-500 hover:text-gray-700 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Chat Messages -->
+        <div class="flex-1 overflow-y-auto p-6 chat-container" id="chatMessages">
+            <!-- Messages will be added here dynamically -->
+        </div>
+
+        <!-- Suggested Questions -->
+        <div id="suggestedQuestions" class="bg-white p-3 border-t border-gray-200 flex flex-wrap gap-2 justify-center">
+            <!-- Will be populated dynamically based on language -->
+        </div>
+
+        <!-- Input Area -->
+        <div class="bg-white p-4 border-t border-gray-200">
+            <form id="messageForm" class="flex items-center space-x-2">
+                <input type="text" id="userInput" class="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Tanyakan apa saja tentang pelajaranmu...">
+                <button type="submit" class="btn-primary rounded-full p-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_KEY = "AIzaSyDJLeXrGe0vwxVhs91rpzzsNEuSryzmb1U";
+        const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+        
+        // DOM Elements
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const chatInterface = document.getElementById('chatInterface');
+        const startButton = document.getElementById('startButton');
+        const chatMessages = document.getElementById('chatMessages');
+        const messageForm = document.getElementById('messageForm');
+        const userInput = document.getElementById('userInput');
+        const resetChat = document.getElementById('resetChat');
+        const suggestedQuestions = document.getElementById('suggestedQuestions');
+        
+        // Language Elements
+        const langId = document.getElementById('langId');
+        const langEn = document.getElementById('langEn');
+        const headerLangId = document.getElementById('headerLangId');
+        const headerLangEn = document.getElementById('headerLangEn');
+        const welcomeTitle = document.getElementById('welcomeTitle');
+        const welcomeSubtitle = document.getElementById('welcomeSubtitle');
+        const headerSubtitle = document.getElementById('headerSubtitle');
+        
+        // Language state
+        let currentLanguage = 'id'; // Default to Indonesian
+        
+        // Language content
+        const translations = {
+            id: {
+                welcomeTitle: "SuJaLo AI",
+                welcomeSubtitle: "Teman belajar yang membantu kamu memahami konsep lebih dalam dan mengembangkan pola pikir bertumbuh",
+                startButton: "Mulai Belajar",
+                headerSubtitle: "Teman Belajarmu",
+                inputPlaceholder: "Tanyakan apa saja tentang pelajaranmu...",
+                resetConfirm: "Apakah kamu yakin ingin memulai percakapan baru?",
+                greeting: "Halo! Saya SuJaLo AI, teman belajarmu. Saya di sini untuk membantu kamu memahami konsep lebih dalam dan mengembangkan pola pikir bertumbuh. Apa yang ingin kamu pelajari hari ini?",
+                freshStart: "Mari mulai dari awal! Apa yang ingin kamu pelajari hari ini?",
+                suggestedQuestions: [
+                    "Apa itu fotosintesis?",
+                    "Bantu aku memahami pecahan",
+                    "Bagaimana cara menyelesaikan persamaan kuadrat?",
+                    "Jelaskan hukum Newton"
+                ],
+                systemPrompt: `Kamu adalah SuJaLo AI, teman belajar yang ramah dan mendukung untuk siswa. Tujuanmu adalah membantu siswa mengembangkan pemahaman mendalam dan pola pikir bertumbuh. Ikuti prinsip-prinsip ini:
+
+                1. Jangan hanya memberikan jawaban langsung. Bimbing siswa melalui proses berpikir.
+                2. Ajukan pertanyaan lanjutan untuk memperdalam pemahaman mereka.
+                3. Berikan dorongan dan penguatan positif.
+                4. Kaitkan konsep dengan contoh dan aplikasi dunia nyata.
+                5. Jika siswa kesulitan, uraikan topik kompleks menjadi bagian yang lebih sederhana.
+                6. Tekankan nilai usaha dan ketekunan dalam belajar.
+                7. Gunakan nada yang ramah dan percakapan sesuai dengan tingkat usia siswa.
+                8. Sarankan topik terkait untuk dipelajari guna memperluas pengetahuan mereka.
+                9. Akui ketika siswa menunjukkan penalaran yang baik atau membuat kemajuan.
+                10. Bersikaplah sabar dan suportif, jangan merendahkan.
+
+                Responsmu harus edukatif, menarik, dan menumbuhkan kecintaan belajar. SELALU GUNAKAN BAHASA INDONESIA.`
+            },
+            en: {
+                welcomeTitle: "SuJaLo AI",
+                welcomeSubtitle: "Your learning companion that helps you understand concepts deeply and develop a growth mindset",
+                startButton: "Start Learning",
+                headerSubtitle: "Your Learning Companion",
+                inputPlaceholder: "Ask me anything about your studies...",
+                resetConfirm: "Are you sure you want to start a new conversation?",
+                greeting: "Hello! I'm SuJaLo AI, your learning companion. I'm here to help you understand concepts deeply and develop a growth mindset. What would you like to learn about today?",
+                freshStart: "Let's start fresh! What would you like to learn about today?",
+                suggestedQuestions: [
+                    "What is photosynthesis?",
+                    "Help me understand fractions",
+                    "How do I solve quadratic equations?",
+                    "Explain Newton's laws"
+                ],
+                systemPrompt: `You are SuJaLo AI, a friendly and supportive learning companion for students. Your goal is to help students develop deep understanding and a growth mindset. Follow these principles:
+
+                1. Don't just give direct answers. Guide students through a thought process.
+                2. Ask follow-up questions to deepen their understanding.
+                3. Provide encouragement and positive reinforcement.
+                4. Relate concepts to real-world examples and applications.
+                5. If a student is struggling, break down complex topics into simpler parts.
+                6. Highlight the value of effort and persistence in learning.
+                7. Use a friendly, conversational tone appropriate for the student's age level.
+                8. Suggest related topics to explore to expand their knowledge.
+                9. Acknowledge when students show good reasoning or make progress.
+                10. Be patient and supportive, never condescending.
+
+                Your responses should be educational, engaging, and foster a love of learning. ALWAYS USE ENGLISH.`
+            }
+        };
+        
+        // Chat history for context
+        let conversationHistory = [];
+        
+        // Event Listeners
+        startButton.addEventListener('click', startChat);
+        messageForm.addEventListener('submit', handleSubmit);
+        resetChat.addEventListener('click', confirmResetChat);
+        
+        // Language switchers
+        langId.addEventListener('click', () => switchLanguage('id', langId, langEn));
+        langEn.addEventListener('click', () => switchLanguage('en', langEn, langId));
+        headerLangId.addEventListener('click', () => switchLanguage('id', headerLangId, headerLangEn));
+        headerLangEn.addEventListener('click', () => switchLanguage('en', headerLangEn, headerLangId));
+        
+        // Initialize UI with default language
+        updateUILanguage();
+        
+        // Functions
+        function switchLanguage(lang, activeEl, inactiveEl) {
+            if (currentLanguage === lang) return;
+            
+            currentLanguage = lang;
+            
+            // Update active states
+            activeEl.classList.add('active');
+            inactiveEl.classList.remove('active');
+            
+            // If we're in the welcome screen, update both language toggles
+            if (!welcomeScreen.classList.contains('hidden')) {
+                if (lang === 'id') {
+                    langId.classList.add('active');
+                    langEn.classList.remove('active');
+                } else {
+                    langEn.classList.add('active');
+                    langId.classList.remove('active');
+                }
+            } else {
+                // If we're in the chat interface, update both language toggles
+                if (lang === 'id') {
+                    headerLangId.classList.add('active');
+                    headerLangEn.classList.remove('active');
+                } else {
+                    headerLangEn.classList.add('active');
+                    headerLangId.classList.remove('active');
+                }
+            }
+            
+            // Update UI text
+            updateUILanguage();
+            
+            // If we're in the chat interface, reset the chat with the new language
+            if (!chatInterface.classList.contains('hidden')) {
+                resetChatHistory();
+            }
+        }
+        
+        function updateUILanguage() {
+            const t = translations[currentLanguage];
+            
+            // Update welcome screen
+            welcomeTitle.textContent = t.welcomeTitle;
+            welcomeSubtitle.textContent = t.welcomeSubtitle;
+            startButton.textContent = t.startButton;
+            
+            // Update chat interface
+            headerSubtitle.textContent = t.headerSubtitle;
+            userInput.placeholder = t.inputPlaceholder;
+            
+            // Update suggested questions
+            updateSuggestedQuestions();
+        }
+        
+        function updateSuggestedQuestions() {
+            suggestedQuestions.innerHTML = '';
+            const questions = translations[currentLanguage].suggestedQuestions;
+            
+            questions.forEach(question => {
+                const button = document.createElement('button');
+                button.className = 'btn-secondary px-3 py-2 rounded-full text-sm';
+                button.textContent = question;
+                button.addEventListener('click', () => {
+                    userInput.value = question;
+                    messageForm.dispatchEvent(new Event('submit'));
+                });
+                suggestedQuestions.appendChild(button);
+            });
+        }
+        
+        function startChat() {
+            welcomeScreen.classList.add('hidden');
+            chatInterface.classList.remove('hidden');
+            
+            // Sync language toggles
+            if (currentLanguage === 'id') {
+                headerLangId.classList.add('active');
+                headerLangEn.classList.remove('active');
+            } else {
+                headerLangEn.classList.add('active');
+                headerLangId.classList.remove('active');
+            }
+            
+            // Add initial greeting message
+            addMessage(translations[currentLanguage].greeting, 'bot');
+            
+            // Add system prompt to conversation history
+            conversationHistory.push({
+                role: "system",
+                parts: [{
+                    text: translations[currentLanguage].systemPrompt
+                }]
+            });
+        }
+        
+        async function handleSubmit(e) {
+            e.preventDefault();
+            const message = userInput.value.trim();
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessage(message, 'user');
+            userInput.value = '';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Add user message to conversation history
+            conversationHistory.push({
+                role: "user",
+                parts: [{ text: message }]
+            });
+            
+            try {
+                const response = await fetchGeminiResponse(message);
+                
+                // Remove typing indicator
+                removeTypingIndicator();
+                
+                // Add bot response to chat
+                addMessage(response, 'bot');
+                
+                // Add bot response to conversation history
+                conversationHistory.push({
+                    role: "model",
+                    parts: [{ text: response }]
+                });
+                
+                // Scroll to bottom
+                scrollToBottom();
+            } catch (error) {
+                console.error("Error:", error);
+                removeTypingIndicator();
+                addMessage("I'm having trouble connecting right now. Please try again later.", 'bot');
+            }
+        }
+        
+        async function fetchGeminiResponse(message) {
+            // Prepare the request payload according to the Gemini API format
+            const payload = {
+                contents: [
+                    {
+                        parts: [
+                            {
+                                text: `You are SuJaLo AI, a friendly learning companion that helps students develop deeper understanding through conversations rather than just giving answers. 
+                                
+                                Previous conversation: ${JSON.stringify(conversationHistory.slice(-6))}
+                                
+                                Student question: ${message}
+                                
+                                Respond in ${currentLanguage === 'id' ? 'INDONESIAN' : 'ENGLISH'} language. Be friendly, supportive, and conversational. Guide the student to deeper understanding, ask follow-up questions, and encourage a growth mindset.`
+                            }
+                        ]
+                    }
+                ]
+            };
+            
+            // Make the API request
+            const response = await fetch(`${API_URL}?key=${API_KEY}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("API Error:", errorData);
+                throw new Error(`API request failed with status ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Extract the response text from the Gemini API response
+            if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+                return data.candidates[0].content.parts[0].text;
+            } else {
+                throw new Error("Unexpected API response format");
+            }
+        }
+        
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message-bubble ${sender === 'user' ? 'user-message' : 'bot-message'}`;
+            
+            // Format the message with line breaks
+            const formattedText = text.replace(/\n/g, '<br>');
+            messageDiv.innerHTML = formattedText;
+            
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+        
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message-bubble bot-message typing-indicator-container';
+            typingDiv.id = 'typingIndicator';
+            
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'typing-indicator';
+            typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+            
+            typingDiv.appendChild(typingIndicator);
+            chatMessages.appendChild(typingDiv);
+            scrollToBottom();
+        }
+        
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+        
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function confirmResetChat() {
+            if (confirm(translations[currentLanguage].resetConfirm)) {
+                resetChatHistory();
+            }
+        }
+        
+        function resetChatHistory() {
+            // Clear chat messages
+            chatMessages.innerHTML = '';
+            
+            // Reset conversation history
+            conversationHistory = [{
+                role: "system",
+                parts: [{
+                    text: translations[currentLanguage].systemPrompt
+                }]
+            }];
+            
+            // Add initial greeting message
+            addMessage(translations[currentLanguage].freshStart, 'bot');
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'95168d06b4b5f847',t:'MTc1MDIwNTI5Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
